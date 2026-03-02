@@ -1,11 +1,14 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { ArchiveProductCommand } from "../impl/archive-product.command";
 import { Product } from "../../entities/product.entity";
 import { ProductStatus } from "../../entities/product-status.enum";
 import { ProductArchivedEvent } from "../../events/product.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(ArchiveProductCommand)
 export class ArchiveProductHandler implements ICommandHandler<ArchiveProductCommand> {
@@ -15,6 +18,8 @@ export class ArchiveProductHandler implements ICommandHandler<ArchiveProductComm
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: ArchiveProductCommand): Promise<Product> {
@@ -32,6 +37,8 @@ export class ArchiveProductHandler implements ICommandHandler<ArchiveProductComm
 
     product.status = ProductStatus.ARCHIVED;
     const saved = await this.productRepository.save(product);
+
+    await this.cache.del(CacheKeys.product(saved.id));
 
     this.logger.log(`Product archived: ${saved.id} - ${saved.name}`);
     this.eventBus.publish(new ProductArchivedEvent(saved.id, saved.name));

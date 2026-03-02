@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EventBus } from "@nestjs/cqrs";
+import { Cache } from "@nestjs/cache-manager";
 import {
   BadRequestException,
   ConflictException,
@@ -26,6 +27,13 @@ const mockRepository = () =>
 
 const mockEventBus = () => ({ publish: vi.fn() }) as unknown as EventBus;
 
+const mockCacheManager = () =>
+  ({
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue(undefined),
+    del: vi.fn().mockResolvedValue(undefined),
+  }) as unknown as Cache;
+
 const buildCategory = (overrides: Partial<Category> = {}): Category =>
   ({
     id: "cat-1",
@@ -41,7 +49,8 @@ const buildCategory = (overrides: Partial<Category> = {}): Category =>
 describe("CreateCategoryHandler", () => {
   const repo = mockRepository();
   const eventBus = mockEventBus();
-  const handler = new CreateCategoryHandler(repo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new CreateCategoryHandler(repo, eventBus, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -103,7 +112,8 @@ describe("CreateCategoryHandler", () => {
 describe("UpdateCategoryHandler", () => {
   const repo = mockRepository();
   const eventBus = mockEventBus();
-  const handler = new UpdateCategoryHandler(repo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new UpdateCategoryHandler(repo, eventBus, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -205,7 +215,8 @@ describe("UpdateCategoryHandler", () => {
 
 describe("GetCategoryHandler", () => {
   const repo = mockRepository();
-  const handler = new GetCategoryHandler(repo);
+  const cache = mockCacheManager();
+  const handler = new GetCategoryHandler(repo, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -233,7 +244,8 @@ describe("GetCategoryHandler", () => {
 
 describe("ListCategoriesHandler", () => {
   const repo = mockRepository();
-  const handler = new ListCategoriesHandler(repo);
+  const cache = mockCacheManager();
+  const handler = new ListCategoriesHandler(repo, cache);
 
   beforeEach(() => vi.clearAllMocks());
 

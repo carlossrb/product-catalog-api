@@ -1,3 +1,4 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import {
   BadRequestException,
@@ -7,11 +8,13 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { AddCategoryCommand } from "../impl/add-category.command";
 import { Product } from "../../entities/product.entity";
 import { Category } from "../../../categories/entities/category.entity";
 import { ProductStatus } from "../../entities/product-status.enum";
 import { CategoryAddedToProductEvent } from "../../events/product.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(AddCategoryCommand)
 export class AddCategoryHandler implements ICommandHandler<AddCategoryCommand> {
@@ -23,6 +26,8 @@ export class AddCategoryHandler implements ICommandHandler<AddCategoryCommand> {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: AddCategoryCommand): Promise<Product> {
@@ -61,6 +66,8 @@ export class AddCategoryHandler implements ICommandHandler<AddCategoryCommand> {
 
     product.categories.push(category);
     const saved = await this.productRepository.save(product);
+
+    await this.cache.del(CacheKeys.product(product.id));
 
     this.logger.log(`Category ${category.id} added to product ${product.id}`);
     this.eventBus.publish(

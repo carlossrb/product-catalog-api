@@ -1,10 +1,13 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { ConflictException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { CreateCategoryCommand } from "../impl/create-category.command";
 import { Category } from "../../entities/category.entity";
 import { CategoryCreatedEvent } from "../../events/category.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(CreateCategoryCommand)
 export class CreateCategoryHandler implements ICommandHandler<CreateCategoryCommand> {
@@ -14,6 +17,8 @@ export class CreateCategoryHandler implements ICommandHandler<CreateCategoryComm
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: CreateCategoryCommand): Promise<Category> {
@@ -45,6 +50,10 @@ export class CreateCategoryHandler implements ICommandHandler<CreateCategoryComm
     });
 
     const saved = await this.categoryRepository.save(category);
+
+    const currentVersion =
+      (await this.cache.get<number>(CacheKeys.categoryListVersion())) ?? 0;
+    await this.cache.set(CacheKeys.categoryListVersion(), currentVersion + 1);
 
     this.logger.log(`Category created: ${saved.id} - ${saved.name}`);
     this.eventBus.publish(

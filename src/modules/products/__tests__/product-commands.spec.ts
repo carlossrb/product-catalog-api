@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EventBus } from "@nestjs/cqrs";
+import { Cache } from "@nestjs/cache-manager";
 import {
   BadRequestException,
   ConflictException,
@@ -40,6 +41,13 @@ const mockRepository = <T extends object>() =>
 
 const mockEventBus = () => ({ publish: vi.fn() }) as unknown as EventBus;
 
+const mockCacheManager = () =>
+  ({
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue(undefined),
+    del: vi.fn().mockResolvedValue(undefined),
+  }) as unknown as Cache;
+
 const buildProduct = (overrides: Partial<Product> = {}): Product =>
   ({
     id: "prod-1",
@@ -75,7 +83,8 @@ const buildAttribute = (
 describe("CreateProductHandler", () => {
   const productRepo = mockRepository<Product>();
   const eventBus = mockEventBus();
-  const handler = new CreateProductHandler(productRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new CreateProductHandler(productRepo, eventBus, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -112,7 +121,8 @@ describe("CreateProductHandler", () => {
 describe("UpdateProductHandler", () => {
   const productRepo = mockRepository<Product>();
   const eventBus = mockEventBus();
-  const handler = new UpdateProductHandler(productRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new UpdateProductHandler(productRepo, eventBus, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -180,7 +190,8 @@ describe("UpdateProductHandler", () => {
 describe("ActivateProductHandler", () => {
   const productRepo = mockRepository<Product>();
   const eventBus = mockEventBus();
-  const handler = new ActivateProductHandler(productRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new ActivateProductHandler(productRepo, eventBus, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -300,7 +311,8 @@ describe("ActivateProductHandler", () => {
 describe("ArchiveProductHandler", () => {
   const productRepo = mockRepository<Product>();
   const eventBus = mockEventBus();
-  const handler = new ArchiveProductHandler(productRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new ArchiveProductHandler(productRepo, eventBus, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -353,7 +365,13 @@ describe("AddCategoryHandler", () => {
   const productRepo = mockRepository<Product>();
   const categoryRepo = mockRepository<Category>();
   const eventBus = mockEventBus();
-  const handler = new AddCategoryHandler(productRepo, categoryRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new AddCategoryHandler(
+    productRepo,
+    categoryRepo,
+    eventBus,
+    cache,
+  );
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -414,7 +432,8 @@ describe("AddCategoryHandler", () => {
 describe("RemoveCategoryHandler", () => {
   const productRepo = mockRepository<Product>();
   const eventBus = mockEventBus();
-  const handler = new RemoveCategoryHandler(productRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new RemoveCategoryHandler(productRepo, eventBus, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -454,7 +473,13 @@ describe("AddAttributeHandler", () => {
   const productRepo = mockRepository<Product>();
   const attrRepo = mockRepository<ProductAttribute>();
   const eventBus = mockEventBus();
-  const handler = new AddAttributeHandler(productRepo, attrRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new AddAttributeHandler(
+    productRepo,
+    attrRepo,
+    eventBus,
+    cache,
+  );
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -509,7 +534,13 @@ describe("UpdateAttributeHandler", () => {
   const productRepo = mockRepository<Product>();
   const attrRepo = mockRepository<ProductAttribute>();
   const eventBus = mockEventBus();
-  const handler = new UpdateAttributeHandler(productRepo, attrRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new UpdateAttributeHandler(
+    productRepo,
+    attrRepo,
+    eventBus,
+    cache,
+  );
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -594,7 +625,13 @@ describe("RemoveAttributeHandler", () => {
   const productRepo = mockRepository<Product>();
   const attrRepo = mockRepository<ProductAttribute>();
   const eventBus = mockEventBus();
-  const handler = new RemoveAttributeHandler(productRepo, attrRepo, eventBus);
+  const cache = mockCacheManager();
+  const handler = new RemoveAttributeHandler(
+    productRepo,
+    attrRepo,
+    eventBus,
+    cache,
+  );
 
   beforeEach(() => vi.clearAllMocks());
 

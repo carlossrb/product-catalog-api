@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EventBus } from "@nestjs/cqrs";
+import { Cache } from "@nestjs/cache-manager";
 import { BadRequestException } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { CreateProductHandler } from "../commands/handlers/create-product.handler";
@@ -121,22 +122,38 @@ const attrRepo = {
 
 const eventBus = { publish: vi.fn() } as unknown as EventBus;
 
+const cache = {
+  get: vi.fn().mockResolvedValue(null),
+  set: vi.fn().mockResolvedValue(undefined),
+  del: vi.fn().mockResolvedValue(undefined),
+} as unknown as Cache;
+
 describe("Product Lifecycle Integration", () => {
-  const createHandler = new CreateProductHandler(productRepo, eventBus);
-  const updateHandler = new UpdateProductHandler(productRepo, eventBus);
-  const activateHandler = new ActivateProductHandler(productRepo, eventBus);
-  const archiveHandler = new ArchiveProductHandler(productRepo, eventBus);
+  const createHandler = new CreateProductHandler(productRepo, eventBus, cache);
+  const updateHandler = new UpdateProductHandler(productRepo, eventBus, cache);
+  const activateHandler = new ActivateProductHandler(
+    productRepo,
+    eventBus,
+    cache,
+  );
+  const archiveHandler = new ArchiveProductHandler(
+    productRepo,
+    eventBus,
+    cache,
+  );
   const addCategoryHandler = new AddCategoryHandler(
     productRepo,
     categoryRepo,
     eventBus,
+    cache,
   );
   const addAttributeHandler = new AddAttributeHandler(
     productRepo,
     attrRepo,
     eventBus,
+    cache,
   );
-  new RemoveAttributeHandler(productRepo, attrRepo, eventBus);
+  new RemoveAttributeHandler(productRepo, attrRepo, eventBus, cache);
 
   beforeEach(() => {
     vi.clearAllMocks();

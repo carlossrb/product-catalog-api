@@ -1,11 +1,14 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Not, Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { ActivateProductCommand } from "../impl/activate-product.command";
 import { Product } from "../../entities/product.entity";
 import { ProductStatus } from "../../entities/product-status.enum";
 import { ProductActivatedEvent } from "../../events/product.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(ActivateProductCommand)
 export class ActivateProductHandler implements ICommandHandler<ActivateProductCommand> {
@@ -15,6 +18,8 @@ export class ActivateProductHandler implements ICommandHandler<ActivateProductCo
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: ActivateProductCommand): Promise<Product> {
@@ -37,11 +42,11 @@ export class ActivateProductHandler implements ICommandHandler<ActivateProductCo
 
     const violations: string[] = [];
 
-    if (product.categories.length === 0) {
+    if (!product.categories.length) {
       violations.push("Product must have at least 1 category");
     }
 
-    if (product.attributes.length === 0) {
+    if (!product.attributes.length) {
       violations.push("Product must have at least 1 attribute");
     }
 
@@ -55,7 +60,7 @@ export class ActivateProductHandler implements ICommandHandler<ActivateProductCo
       );
     }
 
-    if (violations.length) {
+    if (violations?.length) {
       throw new BadRequestException({
         message: "Product cannot be activated",
         violations,
@@ -64,6 +69,8 @@ export class ActivateProductHandler implements ICommandHandler<ActivateProductCo
 
     product.status = ProductStatus.ACTIVE;
     const saved = await this.productRepository.save(product);
+
+    await this.cache.del(CacheKeys.product(saved.id));
 
     this.logger.log(`Product activated: ${saved.id} - ${saved.name}`);
     this.eventBus.publish(new ProductActivatedEvent(saved.id, saved.name));

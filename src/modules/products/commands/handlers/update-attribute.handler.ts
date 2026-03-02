@@ -1,12 +1,15 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { UpdateAttributeCommand } from "../impl/update-attribute.command";
 import { Product } from "../../entities/product.entity";
 import { ProductAttribute } from "../../entities/product-attribute.entity";
 import { ProductStatus } from "../../entities/product-status.enum";
 import { AttributeUpdatedEvent } from "../../events/product.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(UpdateAttributeCommand)
 export class UpdateAttributeHandler implements ICommandHandler<UpdateAttributeCommand> {
@@ -18,6 +21,8 @@ export class UpdateAttributeHandler implements ICommandHandler<UpdateAttributeCo
     @InjectRepository(ProductAttribute)
     private readonly attributeRepository: Repository<ProductAttribute>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: UpdateAttributeCommand): Promise<ProductAttribute> {
@@ -62,6 +67,8 @@ export class UpdateAttributeHandler implements ICommandHandler<UpdateAttributeCo
     }
 
     const saved = await this.attributeRepository.save(attribute);
+
+    await this.cache.del(CacheKeys.product(command.productId));
 
     this.logger.log(
       `Attribute ${attribute.id} updated on product ${product.id}`,

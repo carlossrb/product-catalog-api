@@ -1,12 +1,15 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { RemoveAttributeCommand } from "../impl/remove-attribute.command";
 import { Product } from "../../entities/product.entity";
 import { ProductAttribute } from "../../entities/product-attribute.entity";
 import { ProductStatus } from "../../entities/product-status.enum";
 import { AttributeRemovedEvent } from "../../events/product.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(RemoveAttributeCommand)
 export class RemoveAttributeHandler implements ICommandHandler<RemoveAttributeCommand> {
@@ -18,6 +21,8 @@ export class RemoveAttributeHandler implements ICommandHandler<RemoveAttributeCo
     @InjectRepository(ProductAttribute)
     private readonly attributeRepository: Repository<ProductAttribute>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: RemoveAttributeCommand): Promise<void> {
@@ -46,6 +51,8 @@ export class RemoveAttributeHandler implements ICommandHandler<RemoveAttributeCo
     }
 
     await this.attributeRepository.remove(attribute);
+
+    await this.cache.del(CacheKeys.product(command.productId));
 
     this.logger.log(
       `Attribute "${attribute.key}" removed from product ${product.id}`,

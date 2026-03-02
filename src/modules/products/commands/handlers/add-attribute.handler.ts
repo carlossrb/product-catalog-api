@@ -1,3 +1,4 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import {
   BadRequestException,
@@ -7,11 +8,13 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { AddAttributeCommand } from "../impl/add-attribute.command";
 import { Product } from "../../entities/product.entity";
 import { ProductAttribute } from "../../entities/product-attribute.entity";
 import { ProductStatus } from "../../entities/product-status.enum";
 import { AttributeAddedEvent } from "../../events/product.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(AddAttributeCommand)
 export class AddAttributeHandler implements ICommandHandler<AddAttributeCommand> {
@@ -23,6 +26,8 @@ export class AddAttributeHandler implements ICommandHandler<AddAttributeCommand>
     @InjectRepository(ProductAttribute)
     private readonly attributeRepository: Repository<ProductAttribute>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: AddAttributeCommand): Promise<ProductAttribute> {
@@ -57,6 +62,8 @@ export class AddAttributeHandler implements ICommandHandler<AddAttributeCommand>
     });
 
     const saved = await this.attributeRepository.save(attribute);
+
+    await this.cache.del(CacheKeys.product(command.productId));
 
     this.logger.log(
       `Attribute "${command.key}" added to product ${product.id}`,

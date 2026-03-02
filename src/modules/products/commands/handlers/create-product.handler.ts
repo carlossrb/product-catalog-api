@@ -1,7 +1,9 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { CreateProductCommand } from "../impl/create-product.command";
 import { Product } from "../../entities/product.entity";
 import { ProductCreatedEvent } from "../../events/product.events";
@@ -14,6 +16,8 @@ export class CreateProductHandler implements ICommandHandler<CreateProductComman
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: CreateProductCommand): Promise<Product> {

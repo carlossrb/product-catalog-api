@@ -1,11 +1,14 @@
+import { Inject } from "@nestjs/common";
 import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { RemoveCategoryCommand } from "../impl/remove-category.command";
 import { Product } from "../../entities/product.entity";
 import { ProductStatus } from "../../entities/product-status.enum";
 import { CategoryRemovedFromProductEvent } from "../../events/product.events";
+import { CacheKeys } from "../../../../common/cache/cache-keys";
 
 @CommandHandler(RemoveCategoryCommand)
 export class RemoveCategoryHandler implements ICommandHandler<RemoveCategoryCommand> {
@@ -15,6 +18,8 @@ export class RemoveCategoryHandler implements ICommandHandler<RemoveCategoryComm
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly eventBus: EventBus,
+    @Inject(CACHE_MANAGER)
+    private readonly cache: Cache,
   ) {}
 
   async execute(command: RemoveCategoryCommand): Promise<Product> {
@@ -45,6 +50,8 @@ export class RemoveCategoryHandler implements ICommandHandler<RemoveCategoryComm
 
     product.categories.splice(categoryIndex, 1);
     const saved = await this.productRepository.save(product);
+
+    await this.cache.del(CacheKeys.product(product.id));
 
     this.logger.log(
       `Category ${command.categoryId} removed from product ${product.id}`,

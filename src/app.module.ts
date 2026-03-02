@@ -1,10 +1,12 @@
 import { Module, Scope } from "@nestjs/common";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { CacheModule } from "@nestjs/cache-manager";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { BullModule } from "@nestjs/bullmq";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { CqrsModule } from "@nestjs/cqrs";
+import KeyvRedis from "@keyv/redis";
 import { appConfig } from "./config/app.config";
 import { databaseConfig } from "./config/database.config";
 import { redisConfig } from "./config/redis.config";
@@ -45,6 +47,18 @@ import { AuditModule } from "./modules/audit/audit.module";
           host: config.get<string>("redis.host"),
           port: config.get<number>("redis.port"),
         },
+      }),
+    }),
+
+    CacheModule.registerAsync({
+      isGlobal: true,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        stores: [
+          new KeyvRedis(
+            `redis://${config.get<string>("redis.host")}:${config.get<number>("redis.port")}`,
+          ),
+        ],
       }),
     }),
 

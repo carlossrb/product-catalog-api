@@ -4,7 +4,7 @@ API de catálogo de produtos: o core que alimenta vendas, marketplace e logísti
 
 ## Stack
 
-NestJS 11, TypeORM, PostgreSQL 17, CQRS, BullMQ + Redis, Winston, Scalar (swaggerdocs), Vitest, Docker Compose.
+NestJS 11, TypeORM, PostgreSQL 17, CQRS, BullMQ + Redis (cache + filas), Winston, Scalar (swaggerdocs), Vitest, Docker Compose.
 
 ---
 
@@ -91,17 +91,19 @@ Na prática: pra adicionar uma nova regra de negócio, crio um Command + Handler
 
 O trade-off é mais arquivos. Mas com a separação `impl/` e `handlers/`, a navegação fica clara. Um service monolítico com 500 linhas e 15 métodos seria pior de manter.
 
-### Por que BullMQ e não Kafka/RabbitMQ/SQS?
+### Redis: cache + filas com uma infra só
 
-Redis já havia em docker compose construído anteriormente. BullMQ roda em cima dele, então zero infraestrutura nova.
+Redis serve dois propósitos aqui: **cache de leitura** e **fila de mensagens** (BullMQ). Uma instância, dois problemas resolvidos.
 
-Kafka é overkill — projetado pra milhões de eventos/segundo com partitioning e replay. Aqui são dezenas de eventos de auditoria por minuto. RabbitMQ é robusto mas adicionaria mais um serviço pra gerenciar. SQS é AWS-only e difícil de rodar local.
+**Cache:** rotas de leitura frequente (`GET /products/:id`, `GET /categories/:id`, `GET /categories`) são cacheadas no Redis com TTL curto (30s pra produtos, 60s pra categorias). Qualquer mutação (create, update, activate, archive) invalida o cache da entidade afetada. Pra lista de categorias, usa um versionamento simples: cada mutação incrementa a versão, e as entradas antigas expiram sozinhas pelo TTL. Resultado: menos queries no banco sem risco de servir dado obsoleto por muito tempo.
 
-BullMQ tem retry com backoff exponencial, dead-letter queue, e o `@nestjs/bullmq` é módulo oficial do NestJS. Pragmatismo > purismo.
+**Filas (BullMQ):** eventos de auditoria são enfileirados no Redis via BullMQ e processados de forma assíncrona. Retry com backoff exponencial (1s >> 2s >> 4s), dead-letter queue, e o `@nestjs/bullmq` é módulo oficial do NestJS.
 
-O trade-off: Redis não é um broker "real" de mensageria, já que se o Redis cair, os eventos em memória podem se perder. Pra auditoria interna, onde o retry cobre a maioria dos cenários de falha, é aceitável. Se a auditoria fosse um requisito regulatório crítico, aí sim valeria um RabbitMQ com persistência em disco.
+**Por que não Kafka/RabbitMQ/SQS?** Kafka é projetado pra milhões de eventos/segundo com partitioning e replay. Aqui são dezenas de eventos de auditoria por minuto. RabbitMQ é robusto mas adicionaria mais um serviço pra gerenciar. SQS é AWS-only e difícil de rodar local. Redis já estava no docker-compose pro cache, então BullMQ roda em cima dele sem nenhuma infraestrutura nova. Fica aquele dilema entre `Pragmatismo vs purismo`.
 
-**Fluxo:**
+O trade-off: Redis não é um broker "real" de mensageria. Se o Redis cair, os eventos em memória podem se perder. Pra auditoria interna, onde o retry cobre a maioria dos cenários de falha, é aceitável. Se a auditoria fosse um requisito regulatório crítico, aí sim valeria um RabbitMQ com persistência em disco.
+
+**Fluxo de auditoria:**
 
 ```
 CommandHandler >> EventBus >> AuditEventsHandler >> AuditService >> BullMQ >> AuditProcessor >> banco
@@ -117,7 +119,7 @@ Modelagem:
 - Product <> Category: ManyToMany via join table `product_categories`
 - Product >> ProductAttribute: OneToMany com cascade e `ON DELETE CASCADE`
 - Category >> Category: auto-referência pra hierarquia simples (parentId)
-- AuditLog: tabela independente, sem FKs — log é registro histórico, não referência viva
+- AuditLog: tabela independente, sem FKs: log é registro histórico, não referência viva
 
 ### Logs
 

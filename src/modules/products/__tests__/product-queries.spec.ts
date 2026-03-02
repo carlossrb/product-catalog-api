@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NotFoundException } from "@nestjs/common";
+import { Cache } from "@nestjs/cache-manager";
 import { Repository } from "typeorm";
 import { GetProductHandler } from "../queries/handlers/get-product.handler";
 import { GetProductQuery } from "../queries/impl/get-product.query";
@@ -13,6 +14,13 @@ const mockRepository = () =>
     findOne: vi.fn(),
     findAndCount: vi.fn(),
   }) as unknown as Repository<Product>;
+
+const mockCacheManager = () =>
+  ({
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue(undefined),
+    del: vi.fn().mockResolvedValue(undefined),
+  }) as unknown as Cache;
 
 const buildProduct = (overrides: Partial<Product> = {}): Product =>
   ({
@@ -29,7 +37,8 @@ const buildProduct = (overrides: Partial<Product> = {}): Product =>
 
 describe("GetProductHandler", () => {
   const repo = mockRepository();
-  const handler = new GetProductHandler(repo);
+  const cache = mockCacheManager();
+  const handler = new GetProductHandler(repo, cache);
 
   beforeEach(() => vi.clearAllMocks());
 
