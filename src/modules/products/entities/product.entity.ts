@@ -7,24 +7,24 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { ProductStatus } from './product-status.enum';
-import { ProductAttribute } from './product-attribute.entity';
-import { Category } from '../../categories/entities/category.entity';
+} from "typeorm";
+import { ProductStatus } from "./product-status.enum";
+import { ProductAttribute } from "./product-attribute.entity";
+import { Category } from "../../categories/entities/category.entity";
 
-@Entity('products')
+@Entity("products")
 export class Product {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @Column({ unique: true })
   name!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description!: string | null;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: ProductStatus,
     default: ProductStatus.DRAFT,
   })
@@ -32,9 +32,9 @@ export class Product {
 
   @ManyToMany(() => Category, { eager: false })
   @JoinTable({
-    name: 'product_categories',
-    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
+    name: "product_categories",
+    joinColumn: { name: "product_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "category_id", referencedColumnName: "id" },
   })
   categories!: Category[];
 
@@ -44,9 +44,9 @@ export class Product {
   })
   attributes!: ProductAttribute[];
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: "created_at" })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: "updated_at" })
   updatedAt!: Date;
 }

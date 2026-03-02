@@ -1,19 +1,13 @@
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import {
-  ConflictException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateCategoryCommand } from './create-category.command';
-import { Category } from '../entities/category.entity';
-import { CategoryCreatedEvent } from '../events/category.events';
+import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
+import { ConflictException, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { CreateCategoryCommand } from "../impl/create-category.command";
+import { Category } from "../../entities/category.entity";
+import { CategoryCreatedEvent } from "../../events/category.events";
 
 @CommandHandler(CreateCategoryCommand)
-export class CreateCategoryHandler
-  implements ICommandHandler<CreateCategoryCommand>
-{
+export class CreateCategoryHandler implements ICommandHandler<CreateCategoryCommand> {
   private readonly logger = new Logger(CreateCategoryHandler.name);
 
   constructor(

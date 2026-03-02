@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { GetProductHandler } from '../queries/get-product.handler';
-import { GetProductQuery } from '../queries/get-product.query';
-import { ListProductsHandler } from '../queries/list-products.handler';
-import { ListProductsQuery } from '../queries/list-products.query';
-import { Product } from '../entities/product.entity';
-import { ProductStatus } from '../entities/product-status.enum';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { NotFoundException } from "@nestjs/common";
+import { Repository } from "typeorm";
+import { GetProductHandler } from "../queries/handlers/get-product.handler";
+import { GetProductQuery } from "../queries/impl/get-product.query";
+import { ListProductsHandler } from "../queries/handlers/list-products.handler";
+import { ListProductsQuery } from "../queries/impl/list-products.query";
+import { Product } from "../entities/product.entity";
+import { ProductStatus } from "../entities/product-status.enum";
 
 const mockRepository = () =>
   ({
@@ -16,8 +16,8 @@ const mockRepository = () =>
 
 const buildProduct = (overrides: Partial<Product> = {}): Product =>
   ({
-    id: 'prod-1',
-    name: 'Camiseta',
+    id: "prod-1",
+    name: "Camiseta",
     description: null,
     status: ProductStatus.DRAFT,
     categories: [],
@@ -27,41 +27,41 @@ const buildProduct = (overrides: Partial<Product> = {}): Product =>
     ...overrides,
   }) as Product;
 
-describe('GetProductHandler', () => {
+describe("GetProductHandler", () => {
   const repo = mockRepository();
   const handler = new GetProductHandler(repo);
 
   beforeEach(() => vi.clearAllMocks());
 
-  it('deve retornar produto com categorias e atributos', async () => {
+  it("deve retornar produto com categorias e atributos", async () => {
     const product = buildProduct();
     vi.mocked(repo.findOne).mockResolvedValue(product);
 
-    const result = await handler.execute(new GetProductQuery('prod-1'));
+    const result = await handler.execute(new GetProductQuery("prod-1"));
 
     expect(result).toBe(product);
     expect(repo.findOne).toHaveBeenCalledWith({
-      where: { id: 'prod-1' },
-      relations: ['categories', 'attributes'],
+      where: { id: "prod-1" },
+      relations: ["categories", "attributes"],
     });
   });
 
-  it('deve lançar NotFoundException quando produto não existe', async () => {
+  it("deve lançar NotFoundException quando produto não existe", async () => {
     vi.mocked(repo.findOne).mockResolvedValue(null);
 
     await expect(
-      handler.execute(new GetProductQuery('inexistente')),
+      handler.execute(new GetProductQuery("inexistente")),
     ).rejects.toThrow(NotFoundException);
   });
 });
 
-describe('ListProductsHandler', () => {
+describe("ListProductsHandler", () => {
   const repo = mockRepository();
   const handler = new ListProductsHandler(repo);
 
   beforeEach(() => vi.clearAllMocks());
 
-  it('deve retornar lista paginada com defaults', async () => {
+  it("deve retornar lista paginada com defaults", async () => {
     const products = [buildProduct()];
     vi.mocked(repo.findAndCount).mockResolvedValue([products, 1]);
 
@@ -75,11 +75,11 @@ describe('ListProductsHandler', () => {
     });
   });
 
-  it('deve filtrar por nome parcial', async () => {
+  it("deve filtrar por nome parcial", async () => {
     vi.mocked(repo.findAndCount).mockResolvedValue([[], 0]);
 
     await handler.execute(
-      new ListProductsQuery('camis', undefined, 'createdAt', 'desc', 1, 10),
+      new ListProductsQuery("camis", undefined, "createdAt", "desc", 1, 10),
     );
 
     expect(repo.findAndCount).toHaveBeenCalledWith(
@@ -91,15 +91,15 @@ describe('ListProductsHandler', () => {
     );
   });
 
-  it('deve filtrar por status', async () => {
+  it("deve filtrar por status", async () => {
     vi.mocked(repo.findAndCount).mockResolvedValue([[], 0]);
 
     await handler.execute(
       new ListProductsQuery(
         undefined,
         ProductStatus.ACTIVE,
-        'createdAt',
-        'desc',
+        "createdAt",
+        "desc",
         1,
         10,
       ),
@@ -114,11 +114,11 @@ describe('ListProductsHandler', () => {
     );
   });
 
-  it('deve respeitar paginação', async () => {
+  it("deve respeitar paginação", async () => {
     vi.mocked(repo.findAndCount).mockResolvedValue([[], 0]);
 
     await handler.execute(
-      new ListProductsQuery(undefined, undefined, 'name', 'asc', 3, 5),
+      new ListProductsQuery(undefined, undefined, "name", "asc", 3, 5),
     );
 
     expect(repo.findAndCount).toHaveBeenCalledWith(

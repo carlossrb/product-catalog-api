@@ -4,9 +4,9 @@ import {
   ExceptionFilter,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Response, Request } from 'express';
-import { QueryFailedError, EntityNotFoundError } from 'typeorm';
+} from "@nestjs/common";
+import { Response, Request } from "express";
+import { QueryFailedError, EntityNotFoundError } from "typeorm";
 
 interface PostgresError {
   code: string;
@@ -40,11 +40,12 @@ export class TypeormExceptionFilter implements ExceptionFilter {
     });
   }
 
-  private resolveError(
-    exception: QueryFailedError | EntityNotFoundError,
-  ): { status: number; message: string } {
+  private resolveError(exception: QueryFailedError | EntityNotFoundError): {
+    status: number;
+    message: string;
+  } {
     if (exception instanceof EntityNotFoundError) {
-      return { status: HttpStatus.NOT_FOUND, message: 'Resource not found' };
+      return { status: HttpStatus.NOT_FOUND, message: "Resource not found" };
     }
 
     const pgError = exception.driverError as unknown as
@@ -52,21 +53,21 @@ export class TypeormExceptionFilter implements ExceptionFilter {
       | undefined;
     const code = pgError?.code;
 
-    if (code === '23505') {
-      const detail = pgError?.detail ?? 'Unique constraint violation';
+    if (code === "23505") {
+      const detail = pgError?.detail ?? "Unique constraint violation";
       return { status: HttpStatus.CONFLICT, message: detail };
     }
 
-    if (code === '23503') {
+    if (code === "23503") {
       return {
         status: HttpStatus.BAD_REQUEST,
-        message: 'Foreign key constraint violation',
+        message: "Foreign key constraint violation",
       };
     }
 
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Database error',
+      message: "Database error",
     };
   }
 }

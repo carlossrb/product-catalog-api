@@ -1,5 +1,5 @@
-import { applyDecorators } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { applyDecorators } from "@nestjs/common";
+import { ApiTags } from "@nestjs/swagger";
 
 interface TagDescription {
   readonly name: string;

@@ -1,20 +1,20 @@
-import { Module, Scope } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { BullModule } from '@nestjs/bullmq';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { CqrsModule } from '@nestjs/cqrs';
-import { appConfig } from './config/app.config';
-import { databaseConfig } from './config/database.config';
-import { redisConfig } from './config/redis.config';
-import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
-import { TypeormExceptionFilter } from './common/filters/typeorm-exception.filter';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { HealthModule } from './modules/health/health.module';
-import { ProductsModule } from './modules/products/products.module';
-import { CategoriesModule } from './modules/categories/categories.module';
-import { AuditModule } from './modules/audit/audit.module';
+import { Module, Scope } from "@nestjs/common";
+import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { BullModule } from "@nestjs/bullmq";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { CqrsModule } from "@nestjs/cqrs";
+import { appConfig } from "./config/app.config";
+import { databaseConfig } from "./config/database.config";
+import { redisConfig } from "./config/redis.config";
+import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
+import { TypeormExceptionFilter } from "./common/filters/typeorm-exception.filter";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { HealthModule } from "./modules/health/health.module";
+import { ProductsModule } from "./modules/products/products.module";
+import { CategoriesModule } from "./modules/categories/categories.module";
+import { AuditModule } from "./modules/audit/audit.module";
 
 @Module({
   imports: [
@@ -26,15 +26,15 @@ import { AuditModule } from './modules/audit/audit.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        host: config.get<string>('database.host'),
-        port: config.get<number>('database.port'),
-        username: config.get<string>('database.username'),
-        password: config.get<string>('database.password'),
-        database: config.get<string>('database.database'),
+        type: "postgres" as const,
+        host: config.get<string>("database.host"),
+        port: config.get<number>("database.port"),
+        username: config.get<string>("database.username"),
+        password: config.get<string>("database.password"),
+        database: config.get<string>("database.database"),
         autoLoadEntities: true,
-        synchronize: config.get<string>('app.nodeEnv') !== 'production',
-        logging: config.get<string>('app.nodeEnv') === 'development',
+        synchronize: config.get<string>("app.nodeEnv") !== "production",
+        logging: config.get<string>("app.nodeEnv") === "development",
       }),
     }),
 
@@ -42,8 +42,8 @@ import { AuditModule } from './modules/audit/audit.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         connection: {
-          host: config.get<string>('redis.host'),
-          port: config.get<number>('redis.port'),
+          host: config.get<string>("redis.host"),
+          port: config.get<number>("redis.port"),
         },
       }),
     }),

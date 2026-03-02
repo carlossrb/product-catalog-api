@@ -1,19 +1,19 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { Transform } from "class-transformer";
 
 export class QueryAuditDto {
-  @ApiPropertyOptional({ example: 'PRODUCT_CREATED' })
+  @ApiPropertyOptional({ example: "PRODUCT_CREATED" })
   @IsString()
   @IsOptional()
   readonly action?: string;
 
-  @ApiPropertyOptional({ example: 'Product' })
+  @ApiPropertyOptional({ example: "Product" })
   @IsString()
   @IsOptional()
   readonly entityType?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-da-entidade' })
+  @ApiPropertyOptional({ example: "uuid-da-entidade" })
   @IsString()
   @IsOptional()
   readonly entityId?: string;

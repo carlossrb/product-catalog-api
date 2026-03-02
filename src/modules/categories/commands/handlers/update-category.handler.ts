@@ -1,20 +1,18 @@
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import {
   BadRequestException,
   ConflictException,
   Logger,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
-import { UpdateCategoryCommand } from './update-category.command';
-import { Category } from '../entities/category.entity';
-import { CategoryUpdatedEvent } from '../events/category.events';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Not, Repository } from "typeorm";
+import { UpdateCategoryCommand } from "../impl/update-category.command";
+import { Category } from "../../entities/category.entity";
+import { CategoryUpdatedEvent } from "../../events/category.events";
 
 @CommandHandler(UpdateCategoryCommand)
-export class UpdateCategoryHandler
-  implements ICommandHandler<UpdateCategoryCommand>
-{
+export class UpdateCategoryHandler implements ICommandHandler<UpdateCategoryCommand> {
   private readonly logger = new Logger(UpdateCategoryHandler.name);
 
   constructor(
@@ -51,7 +49,7 @@ export class UpdateCategoryHandler
 
     if (command.parentId !== undefined) {
       if (command.parentId === command.id) {
-        throw new BadRequestException('A category cannot be its own parent');
+        throw new BadRequestException("A category cannot be its own parent");
       }
 
       if (command.parentId !== null) {

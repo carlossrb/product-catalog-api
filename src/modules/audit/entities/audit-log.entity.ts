@@ -4,11 +4,11 @@ import {
   Entity,
   Index,
   PrimaryGeneratedColumn,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity('audit_logs')
+@Entity("audit_logs")
 export class AuditLog {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @Index()
@@ -16,16 +16,16 @@ export class AuditLog {
   action!: string;
 
   @Index()
-  @Column({ name: 'entity_type' })
+  @Column({ name: "entity_type" })
   entityType!: string;
 
   @Index()
-  @Column({ name: 'entity_id' })
+  @Column({ name: "entity_id" })
   entityId!: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: "jsonb", nullable: true })
   payload!: Record<string, unknown> | null;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn({ name: "created_at" })
   createdAt!: Date;
 }

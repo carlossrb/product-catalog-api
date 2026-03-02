@@ -1,15 +1,13 @@
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateProductCommand } from './create-product.command';
-import { Product } from '../entities/product.entity';
-import { ProductCreatedEvent } from '../events/product.events';
+import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
+import { Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { CreateProductCommand } from "../impl/create-product.command";
+import { Product } from "../../entities/product.entity";
+import { ProductCreatedEvent } from "../../events/product.events";
 
 @CommandHandler(CreateProductCommand)
-export class CreateProductHandler
-  implements ICommandHandler<CreateProductCommand>
-{
+export class CreateProductHandler implements ICommandHandler<CreateProductCommand> {
   private readonly logger = new Logger(CreateProductHandler.name);
 
   constructor(

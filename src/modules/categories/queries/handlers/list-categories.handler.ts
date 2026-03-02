@@ -1,8 +1,8 @@
-import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { ListCategoriesQuery } from './list-categories.query';
-import { Category } from '../entities/category.entity';
+import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
+import { InjectRepository } from "@nestjs/typeorm";
+import { FindOptionsWhere, ILike, Repository } from "typeorm";
+import { ListCategoriesQuery } from "../impl/list-categories.query";
+import { Category } from "../../entities/category.entity";
 
 interface PaginatedResult<T> {
   readonly data: T[];
@@ -12,9 +12,7 @@ interface PaginatedResult<T> {
 }
 
 @QueryHandler(ListCategoriesQuery)
-export class ListCategoriesHandler
-  implements IQueryHandler<ListCategoriesQuery>
-{
+export class ListCategoriesHandler implements IQueryHandler<ListCategoriesQuery> {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
@@ -33,7 +31,7 @@ export class ListCategoriesHandler
 
     const [data, total] = await this.categoryRepository.findAndCount({
       where,
-      relations: ['parent'],
+      relations: ["parent"],
       order: { [query.sortBy]: query.sortOrder.toUpperCase() },
       skip,
       take: query.limit,

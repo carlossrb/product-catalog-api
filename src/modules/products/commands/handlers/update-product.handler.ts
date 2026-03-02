@@ -1,16 +1,14 @@
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UpdateProductCommand } from './update-product.command';
-import { Product } from '../entities/product.entity';
-import { ProductStatus } from '../entities/product-status.enum';
-import { ProductUpdatedEvent } from '../events/product.events';
+import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
+import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { UpdateProductCommand } from "../impl/update-product.command";
+import { Product } from "../../entities/product.entity";
+import { ProductStatus } from "../../entities/product-status.enum";
+import { ProductUpdatedEvent } from "../../events/product.events";
 
 @CommandHandler(UpdateProductCommand)
-export class UpdateProductHandler
-  implements ICommandHandler<UpdateProductCommand>
-{
+export class UpdateProductHandler implements ICommandHandler<UpdateProductCommand> {
   private readonly logger = new Logger(UpdateProductHandler.name);
 
   constructor(
@@ -31,7 +29,7 @@ export class UpdateProductHandler
     if (product.status === ProductStatus.ARCHIVED) {
       if (command.name !== undefined) {
         throw new BadRequestException(
-          'Archived products can only have their description updated',
+          "Archived products can only have their description updated",
         );
       }
     }

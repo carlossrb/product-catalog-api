@@ -1,10 +1,10 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { ProductStatus } from '../entities/product-status.enum';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { Transform } from "class-transformer";
+import { ProductStatus } from "../entities/product-status.enum";
 
 export class QueryProductsDto {
-  @ApiPropertyOptional({ example: 'camiseta' })
+  @ApiPropertyOptional({ example: "camiseta" })
   @IsString()
   @IsOptional()
   readonly name?: string;
@@ -14,15 +14,18 @@ export class QueryProductsDto {
   @IsOptional()
   readonly status?: ProductStatus;
 
-  @ApiPropertyOptional({ enum: ['createdAt', 'updatedAt', 'name'], default: 'createdAt' })
+  @ApiPropertyOptional({
+    enum: ["createdAt", "updatedAt", "name"],
+    default: "createdAt",
+  })
   @IsString()
   @IsOptional()
-  readonly sortBy?: 'createdAt' | 'updatedAt' | 'name';
+  readonly sortBy?: "createdAt" | "updatedAt" | "name";
 
-  @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'desc' })
+  @ApiPropertyOptional({ enum: ["asc", "desc"], default: "desc" })
   @IsString()
   @IsOptional()
-  readonly sortOrder?: 'asc' | 'desc';
+  readonly sortOrder?: "asc" | "desc";
 
   @ApiPropertyOptional({ default: 1, minimum: 1 })
   @Transform(({ value }) => Number(value))

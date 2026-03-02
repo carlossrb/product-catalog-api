@@ -1,6 +1,6 @@
-import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { AuditableEvent } from '../../common/interfaces/auditable-event.interface';
-import { AuditService } from './audit.service';
+import { EventsHandler, IEventHandler } from "@nestjs/cqrs";
+import { AuditableEvent } from "../../common/interfaces/auditable-event.interface";
+import { AuditService } from "./audit.service";
 import {
   ProductCreatedEvent,
   ProductUpdatedEvent,
@@ -11,11 +11,11 @@ import {
   AttributeAddedEvent,
   AttributeUpdatedEvent,
   AttributeRemovedEvent,
-} from '../products/events/product.events';
+} from "../products/events/product.events";
 import {
   CategoryCreatedEvent,
   CategoryUpdatedEvent,
-} from '../categories/events/category.events';
+} from "../categories/events/category.events";
 
 @EventsHandler(
   ProductCreatedEvent,

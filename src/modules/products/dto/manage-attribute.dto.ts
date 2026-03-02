@@ -1,27 +1,27 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
 
 export class AddAttributeDto {
-  @ApiProperty({ example: 'cor' })
+  @ApiProperty({ example: "cor" })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   readonly key!: string;
 
-  @ApiProperty({ example: 'azul' })
+  @ApiProperty({ example: "azul" })
   @IsString()
   @IsNotEmpty()
   readonly value!: string;
 }
 
 export class UpdateAttributeDto {
-  @ApiPropertyOptional({ example: 'cor' })
+  @ApiPropertyOptional({ example: "cor" })
   @IsString()
   @IsOptional()
   @MaxLength(255)
   readonly key?: string;
 
-  @ApiPropertyOptional({ example: 'vermelho' })
+  @ApiPropertyOptional({ example: "vermelho" })
   @IsString()
   @IsOptional()
   readonly value?: string;

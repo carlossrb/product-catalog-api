@@ -1,17 +1,15 @@
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UpdateAttributeCommand } from './update-attribute.command';
-import { Product } from '../entities/product.entity';
-import { ProductAttribute } from '../entities/product-attribute.entity';
-import { ProductStatus } from '../entities/product-status.enum';
-import { AttributeUpdatedEvent } from '../events/product.events';
+import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
+import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { UpdateAttributeCommand } from "../impl/update-attribute.command";
+import { Product } from "../../entities/product.entity";
+import { ProductAttribute } from "../../entities/product-attribute.entity";
+import { ProductStatus } from "../../entities/product-status.enum";
+import { AttributeUpdatedEvent } from "../../events/product.events";
 
 @CommandHandler(UpdateAttributeCommand)
-export class UpdateAttributeHandler
-  implements ICommandHandler<UpdateAttributeCommand>
-{
+export class UpdateAttributeHandler implements ICommandHandler<UpdateAttributeCommand> {
   private readonly logger = new Logger(UpdateAttributeHandler.name);
 
   constructor(
@@ -33,7 +31,7 @@ export class UpdateAttributeHandler
 
     if (product.status === ProductStatus.ARCHIVED) {
       throw new BadRequestException(
-        'Cannot modify attributes of an archived product',
+        "Cannot modify attributes of an archived product",
       );
     }
 
@@ -65,7 +63,9 @@ export class UpdateAttributeHandler
 
     const saved = await this.attributeRepository.save(attribute);
 
-    this.logger.log(`Attribute ${attribute.id} updated on product ${product.id}`);
+    this.logger.log(
+      `Attribute ${attribute.id} updated on product ${product.id}`,
+    );
     this.eventBus.publish(
       new AttributeUpdatedEvent(product.id, attribute.id, changes),
     );

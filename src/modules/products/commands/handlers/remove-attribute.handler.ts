@@ -1,17 +1,15 @@
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { RemoveAttributeCommand } from './remove-attribute.command';
-import { Product } from '../entities/product.entity';
-import { ProductAttribute } from '../entities/product-attribute.entity';
-import { ProductStatus } from '../entities/product-status.enum';
-import { AttributeRemovedEvent } from '../events/product.events';
+import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
+import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { RemoveAttributeCommand } from "../impl/remove-attribute.command";
+import { Product } from "../../entities/product.entity";
+import { ProductAttribute } from "../../entities/product-attribute.entity";
+import { ProductStatus } from "../../entities/product-status.enum";
+import { AttributeRemovedEvent } from "../../events/product.events";
 
 @CommandHandler(RemoveAttributeCommand)
-export class RemoveAttributeHandler
-  implements ICommandHandler<RemoveAttributeCommand>
-{
+export class RemoveAttributeHandler implements ICommandHandler<RemoveAttributeCommand> {
   private readonly logger = new Logger(RemoveAttributeHandler.name);
 
   constructor(
@@ -33,7 +31,7 @@ export class RemoveAttributeHandler
 
     if (product.status === ProductStatus.ARCHIVED) {
       throw new BadRequestException(
-        'Cannot modify attributes of an archived product',
+        "Cannot modify attributes of an archived product",
       );
     }
 

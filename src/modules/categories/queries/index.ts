@@ -1,5 +1,5 @@
-import { GetCategoryHandler } from './get-category.handler';
-import { ListCategoriesHandler } from './list-categories.handler';
+import { GetCategoryHandler } from "./handlers/get-category.handler";
+import { ListCategoriesHandler } from "./handlers/list-categories.handler";
 
 export const CategoryQueryHandlers = [
   GetCategoryHandler,

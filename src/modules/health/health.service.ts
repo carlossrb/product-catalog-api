@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Injectable } from "@nestjs/common";
+import { DataSource } from "typeorm";
 
 export interface HealthStatus {
   readonly status: string;
@@ -16,7 +16,7 @@ export class HealthService {
     const dbStatus = await this.checkDatabase();
 
     return {
-      status: dbStatus === 'up' ? 'ok' : 'degraded',
+      status: dbStatus === "up" ? "ok" : "degraded",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       database: dbStatus,
@@ -25,10 +25,10 @@ export class HealthService {
 
   private async checkDatabase(): Promise<string> {
     try {
-      await this.dataSource.query('SELECT 1');
-      return 'up';
+      await this.dataSource.query("SELECT 1");
+      return "up";
     } catch {
-      return 'down';
+      return "down";
     }
   }
 }

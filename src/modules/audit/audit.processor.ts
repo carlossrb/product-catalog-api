@@ -1,11 +1,11 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Job } from 'bullmq';
-import { AuditLog } from './entities/audit-log.entity';
-import { AuditPayload } from '../../common/interfaces/auditable-event.interface';
-import { AUDIT_QUEUE } from './audit.service';
+import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Job } from "bullmq";
+import { AuditLog } from "./entities/audit-log.entity";
+import { AuditPayload } from "../../common/interfaces/auditable-event.interface";
+import { AUDIT_QUEUE } from "./audit.service";
 
 @Processor(AUDIT_QUEUE)
 export class AuditProcessor extends WorkerHost {

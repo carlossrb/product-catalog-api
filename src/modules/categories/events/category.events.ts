@@ -1,7 +1,7 @@
 import {
   AuditableEvent,
   AuditPayload,
-} from '../../../common/interfaces/auditable-event.interface';
+} from "../../../common/interfaces/auditable-event.interface";
 
 export class CategoryCreatedEvent implements AuditableEvent {
   constructor(
@@ -12,8 +12,8 @@ export class CategoryCreatedEvent implements AuditableEvent {
 
   toAuditPayload(): AuditPayload {
     return {
-      action: 'CATEGORY_CREATED',
-      entityType: 'Category',
+      action: "CATEGORY_CREATED",
+      entityType: "Category",
       entityId: this.categoryId,
       payload: { name: this.name, parentId: this.parentId },
     };
@@ -28,8 +28,8 @@ export class CategoryUpdatedEvent implements AuditableEvent {
 
   toAuditPayload(): AuditPayload {
     return {
-      action: 'CATEGORY_UPDATED',
-      entityType: 'Category',
+      action: "CATEGORY_UPDATED",
+      entityType: "Category",
       entityId: this.categoryId,
       payload: this.changes,
     };

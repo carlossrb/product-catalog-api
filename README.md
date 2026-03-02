@@ -1,196 +1,139 @@
 # Product Catalog API
 
-API REST para gerenciamento de catálogo de produtos, construída com NestJS, TypeORM, CQRS e BullMQ.
+API de catálogo de produtos: o core que alimenta vendas, marketplace e logística. Backend-only, sem frontend, sem auth.
 
-## Stack Técnica
+## Stack
 
-| Tecnologia | Propósito |
-|---|---|
-| **NestJS 11** | Framework HTTP + DI container |
-| **TypeORM** | ORM relacional para PostgreSQL |
-| **PostgreSQL 17** | Banco de dados relacional |
-| **@nestjs/cqrs** | Separação de Commands e Queries |
-| **BullMQ + Redis** | Fila para auditoria assíncrona |
-| **Winston** | Logs estruturados em JSON |
-| **Scalar** | Documentação OpenAPI interativa |
-| **Vitest** | Framework de testes |
-| **Docker Compose** | Infraestrutura local |
+NestJS 11, TypeORM, PostgreSQL 17, CQRS, BullMQ + Redis, Winston, Scalar (docs), Vitest, Docker Compose.
 
 ---
 
-## Como Rodar
+## Rodando o projeto
 
-### Pré-requisitos
-
-- Node.js >= 24
-- pnpm >= 10
-- Docker e Docker Compose
-
-### Com Docker Compose (recomendado)
+Precisa de Node >= 24, pnpm >= 10 e Docker.
 
 ```bash
 cp .env.example .env
 docker compose up --build
 ```
 
-A API estará disponível em `http://localhost:3000` e a documentação em `http://localhost:3000/docs`.
+API em `http://localhost:3000`, docs em `http://localhost:3000/docs`.
 
-### Localmente (sem Docker para a API)
+Se preferir rodar a API fora do container:
 
 ```bash
-# Suba apenas PostgreSQL e Redis
 docker compose up postgres redis -d
-
 cp .env.example .env
 pnpm install
 pnpm start:dev
 ```
 
-### Rodar Testes
+Testes:
 
 ```bash
-pnpm test          # executa todos os testes
-pnpm test:watch    # modo watch
+pnpm test
 ```
 
 ---
 
-## Variáveis de Ambiente
+## Variáveis de ambiente
 
-| Variável | Descrição | Default |
-|---|---|---|
-| `NODE_ENV` | Ambiente de execução | `development` |
-| `APP_PORT` | Porta da aplicação | `3000` |
-| `PG_HOST` | Host do PostgreSQL | `localhost` |
-| `PG_PORT` | Porta do PostgreSQL | `5432` |
-| `PG_USERNAME` | Usuário do PostgreSQL | `postgres` |
-| `PG_PASSWORD` | Senha do PostgreSQL | `postgres` |
-| `PG_DATABASE` | Nome do banco | `product_catalog` |
-| `REDIS_HOST` | Host do Redis | `localhost` |
-| `REDIS_PORT` | Porta do Redis | `6379` |
+Tudo tem default sensato pra desenvolvimento. Olha o `.env.example`:
+
+| Variável | Default |
+|---|---|
+| `APP_PORT` | `3000` |
+| `PG_HOST` / `PG_PORT` | `localhost` / `5432` |
+| `PG_USERNAME` / `PG_PASSWORD` | `postgres` / `postgres` |
+| `PG_DATABASE` | `product_catalog` |
+| `REDIS_HOST` / `REDIS_PORT` | `localhost` / `6379` |
 
 ---
 
 ## Endpoints
 
-### Health
+A documentação completa com exemplos de request/response está no Scalar (`/docs`). Resumo:
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/health` | Health check com status do banco |
+**Products** — `/products`
 
-### Products
+- `POST /` — cria produto (nasce como DRAFT)
+- `GET /` — lista com filtros (nome, status) e paginação
+- `GET /:id` — detalhe com categorias e atributos
+- `PATCH /:id` — atualiza nome/descrição
+- `PATCH /:id/activate` — ativa (DRAFT >> ACTIVE)
+- `PATCH /:id/archive` — arquiva
+- `POST /:id/categories/:categoryId` — associa categoria
+- `DELETE /:id/categories/:categoryId` — remove categoria
+- `POST /:id/attributes` — adiciona atributo (key/value)
+- `PATCH /:id/attributes/:attributeId` — atualiza atributo
+- `DELETE /:id/attributes/:attributeId` — remove atributo
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/products` | Criar produto (inicia como DRAFT) |
-| `GET` | `/products` | Listar produtos (filtros, paginação) |
-| `GET` | `/products/:id` | Buscar produto por ID |
-| `PATCH` | `/products/:id` | Atualizar produto |
-| `PATCH` | `/products/:id/activate` | Ativar produto (DRAFT → ACTIVE) |
-| `PATCH` | `/products/:id/archive` | Arquivar produto |
-| `POST` | `/products/:id/categories/:categoryId` | Associar categoria |
-| `DELETE` | `/products/:id/categories/:categoryId` | Remover categoria |
-| `POST` | `/products/:id/attributes` | Adicionar atributo |
-| `PATCH` | `/products/:id/attributes/:attributeId` | Atualizar atributo |
-| `DELETE` | `/products/:id/attributes/:attributeId` | Remover atributo |
+**Categories** — `/categories`
 
-### Categories
+- `POST /` — cria (com `parentId` opcional pra hierarquia)
+- `GET /` — lista com filtros e paginação
+- `GET /:id` — detalhe com parent e children
+- `PATCH /:id` — atualiza
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/categories` | Criar categoria |
-| `GET` | `/categories` | Listar categorias |
-| `GET` | `/categories/:id` | Buscar categoria por ID |
-| `PATCH` | `/categories/:id` | Atualizar categoria |
+**Audit** — `GET /audit` — consulta logs de auditoria com filtros
 
-### Audit
-
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/audit` | Consultar logs de auditoria |
+**Health** — `GET /health` — status da API e do banco
 
 ---
 
-## Decisões Arquiteturais
+## Decisões e trade-offs
 
-### CQRS (`@nestjs/cqrs`)
+### Por que CQRS?
 
-Adotei CQRS para separar claramente as operações de escrita (Commands) das de leitura (Queries). Cada caso de uso tem seu próprio handler isolado, o que facilita:
+O domínio tem regras de negócio bem definidas: transições de status, pré-condições pra ativação, restrições em produto arquivado. Com CQRS, cada regra vive num handler isolado — fácil de testar, fácil de encontrar, fácil de evoluir
 
-- **Testabilidade**: cada handler é testável de forma unitária com mocks simples.
-- **Single Responsibility**: um handler faz uma coisa e faz bem.
-- **Extensibilidade**: adicionar um novo caso de uso é criar um Command + Handler, sem tocar em código existente.
-- **Eventos de domínio**: os handlers publicam eventos via `EventBus`, que são consumidos pelo módulo de auditoria de forma desacoplada.
+Na prática: pra adicionar uma nova regra de negócio, crio um Command + Handler novo sem mexer em nada que já funciona. Cada handler publica um evento de domínio via `EventBus`, que o módulo de auditoria consome de forma desacoplada.
 
-**Trade-off**: mais arquivos que um service monolítico. Para este domínio com regras de negócio claras (status transitions, validações de ativação), a separação compensa pela clareza.
+O trade-off é mais arquivos. Mas com a separação `impl/` e `handlers/`, a navegação fica clara. Um service monolítico com 500 linhas e 15 métodos seria pior de manter.
+
+### Por que BullMQ e não Kafka/RabbitMQ/SQS?
+
+Redis já havia em docker compose construído anteriormente. BullMQ roda em cima dele, então zero infraestrutura nova.
+
+Kafka é overkill — projetado pra milhões de eventos/segundo com partitioning e replay. Aqui são dezenas de eventos de auditoria por minuto. RabbitMQ é robusto mas adicionaria mais um serviço pra gerenciar. SQS é AWS-only e difícil de rodar local.
+
+BullMQ tem retry com backoff exponencial, dead-letter queue, e o `@nestjs/bullmq` é módulo oficial do NestJS. Pragmatismo > purismo.
+
+O trade-off: Redis não é um broker "real" de mensageria, já que se o Redis cair, os eventos em memória podem se perder. Pra auditoria interna, onde o retry cobre a maioria dos cenários de falha, é aceitável. Se a auditoria fosse um requisito regulatório crítico, aí sim valeria um RabbitMQ com persistência em disco.
+
+**Fluxo:**
+
+```
+CommandHandler >> EventBus >> AuditEventsHandler >> AuditService >> BullMQ >> AuditProcessor >> banco
+```
+
+Jobs configurados com 3 tentativas (backoff 1s >> 2s >> 4s).
 
 ### TypeORM
 
-Escolhido por ser requisito do desafio. Configurado com `autoLoadEntities: true` e `synchronize: true` em desenvolvimento para agilidade. Em produção, o ideal é usar migrations com `synchronize: false`.
+Requisito do desafio. Configurado com `synchronize: true` em dev (cria as tabelas automaticamente). Em produção usaria migrations com `synchronize: false`.
 
-A modelagem usa:
-- **Product** ↔ **Category**: ManyToMany via join table `product_categories`
-- **Product** → **ProductAttribute**: OneToMany com cascade
-- **Category** → **Category**: auto-referência para hierarquia (parentId)
-- **AuditLog**: entidade independente, populada assincronamente
+Modelagem:
+- Product <> Category: ManyToMany via join table `product_categories`
+- Product >> ProductAttribute: OneToMany com cascade e `ON DELETE CASCADE`
+- Category >> Category: auto-referência pra hierarquia simples (parentId)
+- AuditLog: tabela independente, sem FKs — log é registro histórico, não referência viva
 
-### BullMQ + Redis (Mensageria)
+### Logs
 
-**Por que BullMQ em vez de RabbitMQ, Kafka ou SQS?**
-
-- **Pragmatismo**: Redis já faz parte da infraestrutura para a fila. Não adiciona um novo serviço ao docker-compose.
-- **Suporte nativo no NestJS**: `@nestjs/bullmq` é o módulo oficial para filas, com integração madura.
-- **Retry automático**: BullMQ oferece retry com backoff exponencial, dead-letter queue e rate limiting out-of-the-box.
-- **Complexidade proporcional**: para auditoria assíncrona (poucos milhares de eventos/minuto), BullMQ é mais que suficiente. Kafka seria over-engineering para esse volume.
-
-**Trade-off**: Redis não é um broker de mensageria "real" — não tem garantias de entrega tão fortes quanto RabbitMQ/Kafka. Para auditoria interna, onde uma eventual perda de log não é catastrófica (e o retry já mitiga isso), é aceitável.
-
-**Fluxo de auditoria:**
-
-```
-CommandHandler → EventBus.publish(DomainEvent)
-                         ↓
-              AuditEventsHandler (CQRS)
-                         ↓
-              AuditService.log() → BullMQ Queue
-                         ↓
-              AuditProcessor (Worker) → Salva AuditLog no banco
-```
-
-Configuração do job: 3 tentativas com backoff exponencial (1s, 2s, 4s). Jobs completados são removidos após 1000 registros, falhos após 5000.
-
-### Observabilidade (Logs Estruturados)
-
-Winston configurado com output JSON em produção, permitindo ingestão em ferramentas como Datadog, ELK ou CloudWatch. Cada handler loga a ação executada com o ID da entidade afetada.
-
-### Testes
-
-- **Unitários**: cada command handler é testado isoladamente com mocks do Repository e EventBus. Cobrem regras de negócio (transitions de status, validações).
-- **Foco**: validação das regras de domínio — produto só ativa com categorias e atributos, produto arquivado não aceita alteração de nome, nomes duplicados, etc.
-
-### TypeScript Estrito
-
-- `strict: true` no tsconfig (inclui `strictNullChecks`, `noImplicitAny`)
-- `noUncheckedIndexedAccess: true` para segurança extra
-- ESLint com `@typescript-eslint/no-explicit-any: error`
-- Preferência por `const` sobre `let` em todo o codebase
+Winston com output JSON. Cada handler loga o que fez e com qual entidade. Em produção, esse JSON vai direto pra Datadog/ELK/CloudWatch sem precisar de parser.
 
 ---
 
-## Regras de Negócio
+## Regras de negócio
 
-### Produto
+**Produto:**
+- Nasce como DRAFT. Transições: DRAFT >> ACTIVE, DRAFT >> ARCHIVED, ACTIVE >> ARCHIVED
+- Pra ativar precisa de: pelo menos 1 categoria, pelo menos 1 atributo, e nome único no sistema
+- Produto ARCHIVED: não volta pra ACTIVE, não aceita mudança em categorias/atributos. Só a descrição pode ser editada
+- Atributos têm key única por produto (não dá pra ter duas vezes "cor")
 
-- Todo produto inicia com status **DRAFT**
-- Transições válidas: `DRAFT → ACTIVE`, `DRAFT → ARCHIVED`, `ACTIVE → ARCHIVED`
-- **Ativação** requer: ≥1 categoria, ≥1 atributo, nome único no sistema
-- **Produto ARCHIVED**: não pode ser ativado nem ter categorias/atributos alterados. Apenas a descrição pode ser editada
-- Atributos possuem key única por produto
-
-### Categoria
-
+**Categoria:**
 - Nome único no sistema
-- Suporta hierarquia simples via `parentId`
-- Categoria não pode ser pai de si mesma
-- `parentId`, se informado, deve referenciar categoria existente
+- Hierarquia simples via parentId (se informado, o pai precisa existir)
+- Não pode ser pai de si mesma

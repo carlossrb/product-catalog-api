@@ -1,22 +1,20 @@
-import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from "@nestjs/cqrs";
 import {
   BadRequestException,
   ConflictException,
   Logger,
   NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { AddAttributeCommand } from './add-attribute.command';
-import { Product } from '../entities/product.entity';
-import { ProductAttribute } from '../entities/product-attribute.entity';
-import { ProductStatus } from '../entities/product-status.enum';
-import { AttributeAddedEvent } from '../events/product.events';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { AddAttributeCommand } from "../impl/add-attribute.command";
+import { Product } from "../../entities/product.entity";
+import { ProductAttribute } from "../../entities/product-attribute.entity";
+import { ProductStatus } from "../../entities/product-status.enum";
+import { AttributeAddedEvent } from "../../events/product.events";
 
 @CommandHandler(AddAttributeCommand)
-export class AddAttributeHandler
-  implements ICommandHandler<AddAttributeCommand>
-{
+export class AddAttributeHandler implements ICommandHandler<AddAttributeCommand> {
   private readonly logger = new Logger(AddAttributeHandler.name);
 
   constructor(
@@ -38,7 +36,7 @@ export class AddAttributeHandler
 
     if (product.status === ProductStatus.ARCHIVED) {
       throw new BadRequestException(
-        'Cannot modify attributes of an archived product',
+        "Cannot modify attributes of an archived product",
       );
     }
 

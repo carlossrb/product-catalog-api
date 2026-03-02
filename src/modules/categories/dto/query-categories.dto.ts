@@ -1,22 +1,22 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import { Transform } from "class-transformer";
 
 export class QueryCategoriesDto {
-  @ApiPropertyOptional({ example: 'vestuário' })
+  @ApiPropertyOptional({ example: "vestuário" })
   @IsString()
   @IsOptional()
   readonly name?: string;
 
-  @ApiPropertyOptional({ enum: ['createdAt', 'name'], default: 'createdAt' })
+  @ApiPropertyOptional({ enum: ["createdAt", "name"], default: "createdAt" })
   @IsString()
   @IsOptional()
-  readonly sortBy?: 'createdAt' | 'name';
+  readonly sortBy?: "createdAt" | "name";
 
-  @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'desc' })
+  @ApiPropertyOptional({ enum: ["asc", "desc"], default: "desc" })
   @IsString()
   @IsOptional()
-  readonly sortOrder?: 'asc' | 'desc';
+  readonly sortOrder?: "asc" | "desc";
 
   @ApiPropertyOptional({ default: 1, minimum: 1 })
   @Transform(({ value }) => Number(value))

@@ -1,8 +1,8 @@
-import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { ListProductsQuery } from './list-products.query';
-import { Product } from '../entities/product.entity';
+import { IQueryHandler, QueryHandler } from "@nestjs/cqrs";
+import { InjectRepository } from "@nestjs/typeorm";
+import { FindOptionsWhere, ILike, Repository } from "typeorm";
+import { ListProductsQuery } from "../impl/list-products.query";
+import { Product } from "../../entities/product.entity";
 
 interface PaginatedResult<T> {
   readonly data: T[];
@@ -12,17 +12,13 @@ interface PaginatedResult<T> {
 }
 
 @QueryHandler(ListProductsQuery)
-export class ListProductsHandler
-  implements IQueryHandler<ListProductsQuery>
-{
+export class ListProductsHandler implements IQueryHandler<ListProductsQuery> {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) {}
 
-  async execute(
-    query: ListProductsQuery,
-  ): Promise<PaginatedResult<Product>> {
+  async execute(query: ListProductsQuery): Promise<PaginatedResult<Product>> {
     const skip = (query.page - 1) * query.limit;
 
     const where: FindOptionsWhere<Product> = {};
@@ -37,7 +33,7 @@ export class ListProductsHandler
 
     const [data, total] = await this.productRepository.findAndCount({
       where,
-      relations: ['categories', 'attributes'],
+      relations: ["categories", "attributes"],
       order: { [query.sortBy]: query.sortOrder.toUpperCase() },
       skip,
       take: query.limit,

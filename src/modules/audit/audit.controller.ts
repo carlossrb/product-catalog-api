@@ -1,13 +1,13 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { AuditLog } from './entities/audit-log.entity';
-import { QueryAuditDto } from './dto/query-audit.dto';
-import { ApiTagWithDescription } from '../../common/decorators/api-tag.decorator';
+import { Controller, Get, Query } from "@nestjs/common";
+import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { InjectRepository } from "@nestjs/typeorm";
+import { FindOptionsWhere, ILike, Repository } from "typeorm";
+import { AuditLog } from "./entities/audit-log.entity";
+import { QueryAuditDto } from "./dto/query-audit.dto";
+import { ApiTagWithDescription } from "../../common/decorators/api-tag.decorator";
 
-@Controller('audit')
-@ApiTagWithDescription('Audit', 'Consulta de logs de auditoria')
+@Controller("audit")
+@ApiTagWithDescription("Audit", "Consulta de logs de auditoria")
 export class AuditController {
   constructor(
     @InjectRepository(AuditLog)
@@ -15,8 +15,8 @@ export class AuditController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Listar logs de auditoria' })
-  @ApiResponse({ status: 200, description: 'Lista de audit logs' })
+  @ApiOperation({ summary: "Listar logs de auditoria" })
+  @ApiResponse({ status: 200, description: "Lista de audit logs" })
   async findAll(@Query() query: QueryAuditDto): Promise<{
     data: AuditLog[];
     total: number;
@@ -41,7 +41,7 @@ export class AuditController {
 
     const [data, total] = await this.auditLogRepository.findAndCount({
       where,
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
       skip,
       take: limit,
     });

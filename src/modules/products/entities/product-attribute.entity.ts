@@ -5,13 +5,13 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
-} from 'typeorm';
-import { Product } from './product.entity';
+} from "typeorm";
+import { Product } from "./product.entity";
 
-@Entity('product_attributes')
-@Unique(['productId', 'key'])
+@Entity("product_attributes")
+@Unique(["productId", "key"])
 export class ProductAttribute {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
   @Column()
@@ -20,12 +20,12 @@ export class ProductAttribute {
   @Column()
   value!: string;
 
-  @Column({ name: 'product_id' })
+  @Column({ name: "product_id" })
   productId!: string;
 
   @ManyToOne(() => Product, (product) => product.attributes, {
-    onDelete: 'CASCADE',
+    onDelete: "CASCADE",
   })
-  @JoinColumn({ name: 'product_id' })
+  @JoinColumn({ name: "product_id" })
   product!: Product;
 }
