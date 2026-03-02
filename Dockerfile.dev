@@ -1,0 +1,14 @@
+FROM node:24-alpine3.20
+
+RUN npm install -g pnpm@10.17.1
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
+
+COPY . .
+
+ENV NODE_ENV=development
+EXPOSE 3000
+
+CMD ["pnpm", "start:dev"]
